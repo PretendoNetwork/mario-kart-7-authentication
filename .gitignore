@@ -13,3 +13,9 @@
 
 # custom
 build
+
+# built server
+mk7-authentication
+
+# logs
+log/*

@@ -4,19 +4,21 @@ import (
 	"fmt"
 
 	nex "github.com/PretendoNetwork/nex-go"
-	nexproto "github.com/PretendoNetwork/nex-protocols-go"
+	nexauth "github.com/PretendoNetwork/nex-protocols-common-go/authentication"
 )
 
 var nexServer *nex.Server
 
 func main() {
 	nexServer = nex.NewServer()
-	nexServer.SetPrudpVersion(1)
-	nexServer.SetNexVersion(30500)
+	nexServer.SetPrudpVersion(0)
+	nexServer.SetNexVersion(2)
 	nexServer.SetKerberosKeySize(32)
-	nexServer.SetAccessKey("25dbf96a")
+	nexServer.SetAccessKey("6181dff1")
+	nexServer.SetPingTimeout(20)
+	nexServer.SetKerberosPassword("test")
 
-	nexServer.On("Data", func(packet *nex.PacketV1) {
+	nexServer.On("Data", func(packet *nex.PacketV0) {
 		request := packet.RMCRequest()
 
 		fmt.Println("==MK8 - Auth==")
@@ -25,13 +27,11 @@ func main() {
 		fmt.Println("===============")
 	})
 
-	authenticationServer := nexproto.NewAuthenticationProtocol(nexServer)
+	authenticationServer := nexauth.NewCommonAuthenticationProtocol(nexServer)
+	authenticationServer.SetSecureStationURL(nex.NewStationURL("prudps:/address=154.51.186.148;port=61001;CID=1;PID=2;sid=1;stream=10;type=2"))
+	authenticationServer.SetBuildName("Pretendo MK7")
+	authenticationServer.PasswordFromPID(getNEXAccountByPID)
+	_ = authenticationServer
 
-	// Handle LoginEx RMC method
-	authenticationServer.LoginEx(loginEx)
-
-	// Handle RequestTicket RMC method
-	authenticationServer.RequestTicket(requestTicket)
-
-	nexServer.Listen(":60002")
+	nexServer.Listen(":61000")
 }

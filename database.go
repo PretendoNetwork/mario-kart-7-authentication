@@ -23,18 +23,18 @@ func connectMongo() {
 	mongoCollection = mongoDatabase.Collection("nexaccounts")
 }
 
-func getNEXAccountByPID(pid uint32) bson.M {
+func getNEXAccountByPID(pid uint32) (string, uint32) {
 	var result bson.M
 
 	err := mongoCollection.FindOne(context.TODO(), bson.D{{Key: "pid", Value: pid}}, options.FindOne()).Decode(&result)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil
+			return "", 1
 		}
 
-		panic(err)
+		return "", 1
 	}
 
-	return result
+	return result["password"].(string), 0
 }
