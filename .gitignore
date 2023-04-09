@@ -12,10 +12,10 @@
 *.out
 
 # custom
-build
+.env
 
 # built server
-mk7-authentication
+build
 
 # logs
-log/*
+log

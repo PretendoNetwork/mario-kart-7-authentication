@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,7 +16,7 @@ var mongoDatabase *mongo.Database
 var mongoCollection *mongo.Collection
 
 func connectMongo() {
-	mongoClient, _ = mongo.NewClient(options.Client().ApplyURI("mongodb://143.198.126.113:27017/"))
+	mongoClient, _ = mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	mongoContext, _ = context.WithTimeout(context.Background(), 10*time.Second)
 	_ = mongoClient.Connect(mongoContext)
 
@@ -23,18 +24,18 @@ func connectMongo() {
 	mongoCollection = mongoDatabase.Collection("nexaccounts")
 }
 
-func getNEXAccountByPID(pid uint32) (string, uint32) {
+func getNEXAccountByPID(pid uint32) bson.M {
 	var result bson.M
 
 	err := mongoCollection.FindOne(context.TODO(), bson.D{{Key: "pid", Value: pid}}, options.FindOne()).Decode(&result)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return "", 1
+			return nil
 		}
 
-		return "", 1
+		panic(err)
 	}
 
-	return result["password"].(string), 0
+	return result
 }
